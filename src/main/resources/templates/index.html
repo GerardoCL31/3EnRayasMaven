@@ -1,0 +1,208 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>3 en raya</title>
+
+  <style>
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: system-ui, Segoe UI, Roboto, Arial, sans-serif;
+      background: linear-gradient(135deg, #1d2671, #c33764);
+      color: white;
+    }
+
+    .card {
+      background: rgba(0,0,0,0.35);
+      backdrop-filter: blur(8px);
+      border-radius: 20px;
+      padding: 30px 40px;
+      text-align: center;
+      box-shadow: 0 20px 40px rgba(0,0,0,0.4);
+      max-width: 420px;
+      width: 100%;
+    }
+
+    h1 {
+      margin-top: 0;
+      font-size: 2.2rem;
+      letter-spacing: 1px;
+    }
+
+    .status {
+      margin: 15px 0;
+      font-size: 1.2rem;
+      font-weight: 600;
+    }
+
+    .board {
+      display: grid;
+      grid-template-columns: repeat(3, 110px);
+      gap: 12px;
+      justify-content: center;
+      margin: 20px 0;
+    }
+
+    .cell {
+      width: 110px;
+      height: 110px;
+      border-radius: 16px;
+      background: rgba(255,255,255,0.15);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 3rem;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      user-select: none;
+    }
+
+    .cell:hover {
+      background: rgba(255,255,255,0.3);
+      transform: scale(1.05);
+    }
+
+    .cell.x {
+      color: #00e5ff;
+      text-shadow: 0 0 10px #00e5ff;
+    }
+
+    .cell.o {
+      color: #ffca28;
+      text-shadow: 0 0 10px #ffca28;
+    }
+
+    .cell.disabled {
+      pointer-events: none;
+      opacity: 0.7;
+    }
+
+    button {
+      margin-top: 15px;
+      padding: 10px 18px;
+      font-size: 1rem;
+      border-radius: 999px;
+      border: none;
+      cursor: pointer;
+      background: linear-gradient(135deg, #ff512f, #dd2476);
+      color: white;
+      font-weight: 600;
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 20px rgba(0,0,0,0.4);
+    }
+
+    .score {
+      margin-top: 10px;
+      font-size: 0.9rem;
+      opacity: 0.85;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="card">
+    <h1>3 en raya</h1>
+    <div class="status" id="status">Turno: X</div>
+
+    <div class="board" id="board"></div>
+
+    <button id="reset">Reiniciar</button>
+
+    <div class="score" id="score">
+      X: 0 Â· O: 0 Â· Empates: 0
+    </div>
+  </div>
+
+  <script>
+    const boardEl = document.getElementById('board');
+    const statusEl = document.getElementById('status');
+    const scoreEl  = document.getElementById('score');
+    const resetBtn = document.getElementById('reset');
+
+    let board = Array(9).fill('');
+    let turn = 'X';
+    let finished = false;
+    let score = { X: 0, O: 0, D: 0 };
+
+    const wins = [
+      [0,1,2],[3,4,5],[6,7,8],
+      [0,3,6],[1,4,7],[2,5,8],
+      [0,4,8],[2,4,6]
+    ];
+
+    function render() {
+      boardEl.innerHTML = '';
+      board.forEach((v, i) => {
+        const cell = document.createElement('div');
+        cell.className = 'cell';
+        if (v === 'X') cell.classList.add('x');
+        if (v === 'O') cell.classList.add('o');
+        if (finished || v) cell.classList.add('disabled');
+        cell.textContent = v;
+        cell.onclick = () => play(i);
+        boardEl.appendChild(cell);
+      });
+
+      if (!finished) {
+        statusEl.textContent = 'Turno: ' + turn;
+      }
+
+      scoreEl.textContent =
+        `X: ${score.X} Â· O: ${score.O} Â· Empates: ${score.D}`;
+    }
+
+    function checkWinner() {
+      for (const [a,b,c] of wins) {
+        if (board[a] && board[a] === board[b] && board[a] === board[c]) {
+          return board[a];
+        }
+      }
+      if (board.every(x => x)) return 'D';
+      return null;
+    }
+
+    function play(i) {
+      if (finished || board[i]) return;
+
+      board[i] = turn;
+      const w = checkWinner();
+
+      if (w) {
+        finished = true;
+        if (w === 'D') {
+          score.D++;
+          statusEl.textContent = 'Empate í´';
+        } else {
+          score[w]++;
+          statusEl.textContent = 'Gana ' + w + ' í¾‰';
+        }
+      } else {
+        turn = turn === 'X' ? 'O' : 'X';
+      }
+
+      render();
+    }
+
+    resetBtn.onclick = () => {
+      board = Array(9).fill('');
+      turn = 'X';
+      finished = false;
+      render();
+    };
+
+    render();
+  </script>
+
+</body>
+</html>
